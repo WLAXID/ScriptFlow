@@ -91,11 +91,10 @@ class MainActivity : AppCompatActivity() {
         itemSave.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
 
-            val suggestedName =
-                currentFileUri?.let { getFileName(it) } ?: "script.py"
-
+            val suggestedName = currentFileName.ifBlank { "script.py" }
             saveFileLauncher.launch(suggestedName)
         }
+
         btnOptions.setOnClickListener {
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START)
@@ -257,17 +256,14 @@ class MainActivity : AppCompatActivity() {
             ActivityResultContracts.CreateDocument("text/x-python")
         ) { uri ->
             uri ?: return@registerForActivityResult
-            writeFile(uri)
-            currentFileUri = uri
-        }
 
-    private fun saveCurrentFile() {
-        if (currentFileUri != null) {
-            writeFile(currentFileUri!!)
-        } else {
-            saveFileLauncher.launch("script.py")
+            writeFile(uri)
+
+            currentFileUri = uri
+            currentFileName = getFileName(uri)
+            isDirty = false
+            updateFileTitle()
         }
-    }
 
 
 }
