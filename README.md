@@ -2,7 +2,20 @@
 
 ScriptFlow — Android проект IDE для редактирования Python скриптов с дальнейшим уклоном в системную и UI-автоматизацию. Проект находится в активной разработке. Архитектура и публичные интерфейсы не считаются стабильными и могут меняться.
 
-Подробный план развития, приоритеты задач и этапы реализации вынесены в [TODO.md](TODO.md).
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Android-white" />
+  <img src="https://img.shields.io/badge/language-Kotlin-white" />
+  <a href="./TODO.md">
+    <img src="https://img.shields.io/badge/roadmap-TODO.md-white" />
+  </a>
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-white" />
+  </a>
+</p>
+
+
+
+
 
 <p align="center"> <img src="screen.jpg"> </p>
 
