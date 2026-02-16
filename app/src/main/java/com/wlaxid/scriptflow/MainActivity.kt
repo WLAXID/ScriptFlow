@@ -6,36 +6,35 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.amrdeveloper.codeview.CodeView
 import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.documentfile.provider.DocumentFile
 import androidx.drawerlayout.widget.DrawerLayout
+import com.amrdeveloper.codeview.CodeView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.wlaxid.scriptflow.editor.EditorState
 import java.util.regex.Pattern
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var fabExecute: FloatingActionButton
-    private lateinit var itemOpen: LinearLayout
-    private lateinit var itemSave: LinearLayout
+    private val editorState = EditorState()
+
     private lateinit var codeView: CodeView
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var btnOptions: ImageView
     private lateinit var txtFileName: TextView
+    private lateinit var btnOptions: ImageView
+    private lateinit var itemOpen: LinearLayout
+    private lateinit var itemSave: LinearLayout
+    private lateinit var fabExecute: FloatingActionButton
 
-    private var isDirty = false
-    private var currentFileName = "script.py"
-    private var currentFileUri: Uri? = null
     private var isRunning = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,56 +42,57 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
+        bindViews()
+        setupEditor()
+        setupListeners()
+
+        updateTitle()
+    }
+
+    private fun bindViews() {
         codeView = findViewById(R.id.codeView)
+        drawerLayout = findViewById(R.id.drawerLayout)
+        txtFileName = findViewById(R.id.txtFileName)
+        btnOptions = findViewById(R.id.btnOptions)
         itemOpen = findViewById(R.id.itemOpen)
         itemSave = findViewById(R.id.itemSave)
-        drawerLayout = findViewById(R.id.drawerLayout)
-        btnOptions = findViewById(R.id.btnOptions)
         fabExecute = findViewById(R.id.fabExecute)
-        txtFileName = findViewById(R.id.txtFileName)
+    }
 
+    private fun setupEditor() {
+        codeView.setText("print(\"Hello World\")")
+        codeView.setTabLength(4)
+        codeView.setEnableLineNumber(true)
+        codeView.setLineNumberTextSize(50f)
+        codeView.setLineNumberTextColor(Color.WHITE)
+        codeView.setEnableHighlightCurrentLine(true)
+        codeView.setHighlightCurrentLineColor(Color.GRAY)
+        codeView.enablePairComplete(true)
+        codeView.enablePairCompleteCenterCursor(true)
 
         setPairs()
         setSyntax()
+    }
 
-        txtFileName.text = "script.py"
-        codeView.setText("print(\"Hello World\")")
+    private fun setupListeners() {
 
-        // Пока не обрабатывается табуляция
-        codeView.setTabLength(4);
-
-        // Номер строки
-        codeView.setEnableLineNumber(true);
-        codeView.setLineNumberTextSize(50f);
-        codeView.setLineNumberTextColor(Color.WHITE)
-
-        // Текущая линия
-        codeView.setEnableHighlightCurrentLine(true)
-        codeView.setHighlightCurrentLineColor(Color.GRAY);
-
-        // Парные кавычки, скобки
-        codeView.enablePairComplete(true);
-        codeView.enablePairCompleteCenterCursor(true);
-
-        // Listeners
         codeView.addTextChangedListener {
-            if (!isDirty) {
-                isDirty = true
-                updateFileTitle()
+            if (!editorState.isDirty) {
+                editorState.onTextChanged()
+                updateTitle()
             }
         }
-        fabExecute.setOnClickListener {
-            toggleRunState()
-        }
+
+        fabExecute.setOnClickListener { toggleRunState() }
+
         itemOpen.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
             openFileLauncher.launch(arrayOf("text/*"))
         }
+
         itemSave.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-
-            val suggestedName = currentFileName.ifBlank { "script.py" }
-            saveFileLauncher.launch(suggestedName)
+            saveFileLauncher.launch(editorState.currentFileName)
         }
 
         btnOptions.setOnClickListener {
@@ -102,17 +102,12 @@ class MainActivity : AppCompatActivity() {
                 drawerLayout.openDrawer(GravityCompat.START)
             }
         }
+
         drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
             override fun onDrawerOpened(drawerView: View) {
-
                 codeView.isEnabled = false
-                // убрать фокус
                 codeView.clearFocus()
-
-                // скрыть клавиатуру
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(codeView.windowToken, 0)
-
+                hideKeyboard()
             }
 
             override fun onDrawerClosed(drawerView: View) {
@@ -123,107 +118,28 @@ class MainActivity : AppCompatActivity() {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
             override fun onDrawerStateChanged(newState: Int) {}
         })
-
     }
 
-// ================= FILE UTILS =================
+    private fun updateTitle() {
+        txtFileName.text = editorState.displayName()
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(codeView.windowToken, 0)
+    }
+
+    // ================= FILE =================
 
     private fun getFileName(uri: Uri): String {
         return DocumentFile.fromSingleUri(this, uri)?.name ?: "script.py"
     }
 
     private fun writeFile(uri: Uri) {
-        contentResolver.openOutputStream(uri, "wt")?.use { output ->
-            output.write(codeView.text.toString().toByteArray())
-
-            isDirty = false
-            updateFileTitle()
+        contentResolver.openOutputStream(uri, "wt")?.use {
+            it.write(codeView.text.toString().toByteArray())
         }
     }
-
-    private fun updateFileTitle() {
-        txtFileName.text = if (isDirty) {
-            "$currentFileName *"
-        } else {
-            currentFileName
-        }
-    }
-
-
-// ================= PAIRS =================
-
-    private fun setPairs() {
-        val pairCompleteMap = hashMapOf(
-            '{' to '}',
-            '[' to ']',
-            '(' to ')',
-            '<' to '>',
-            '"' to '"',
-            '\'' to '\''
-        )
-        codeView.setPairCompleteMap(pairCompleteMap)
-    }
-
-// ================= SYNTAX =================
-
-    private fun setSyntax() {
-
-        val pythonKeywords = listOf(
-            "False","None","True","and","as","assert","break","class","continue","def","del",
-            "elif","else","except","finally","for","from","global","if","import","in","is",
-            "lambda","nonlocal","not","or","pass","raise","return","try","while","with","yield",
-            "async","await"
-        )
-
-        val pythonOperators = listOf(
-            "==","!=","<=",">=","=","\\+","-","\\*","/","%","\\^","\\|","&","~","<<",">>"
-        )
-
-        val keywordPattern        = ("\\b(" + pythonKeywords.joinToString("|") + ")\\b").toRegex()
-        val operatorPattern       = ("(" + pythonOperators.joinToString("|") + ")").toRegex()
-        val multiStringPattern    = "(\"\"\"[\\s\\S]*?\"\"\"|'{3}[\\s\\S]*?'{3})".toRegex()
-        val stringPattern         = "(?<!\\\\)(?:[fF]?[rR]?(?:\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'))".toRegex()
-        val commentPattern        = "#.*".toRegex()
-        val numberPattern         = "\\b(?:0b[01_]+|0x[0-9A-Fa-f_]+|\\d[\\d_]*(?:\\.\\d[\\d_]*)?)\\b".toRegex()
-        val funcNamePattern       = "(?<=def\\s)\\w+".toRegex()
-        val classNamePattern      = "(?<=class\\s)\\w+".toRegex()
-        val decoratorPattern      = "@\\w+".toRegex()
-        val typeAnnotationPattern = ":\\s*(\\w+)".toRegex()
-
-        val syntaxPatterns = mutableMapOf<Pattern, Int>().apply {
-            this[keywordPattern.toPattern()]        = "#569CD6".toColorInt()
-            this[operatorPattern.toPattern()]       = "#D4D4D4".toColorInt()
-            this[multiStringPattern.toPattern()]    = "#CE9178".toColorInt()
-            this[stringPattern.toPattern()]         = "#CE9178".toColorInt()
-            this[commentPattern.toPattern()]        = "#6A9955".toColorInt()
-            this[numberPattern.toPattern()]         = "#B5CEA8".toColorInt()
-            this[funcNamePattern.toPattern()]       = "#DCDCAA".toColorInt()
-            this[classNamePattern.toPattern()]      = "#4EC9B0".toColorInt()
-            this[decoratorPattern.toPattern()]      = "#C586C0".toColorInt()
-            this[typeAnnotationPattern.toPattern()] = "#9CDCFE".toColorInt()
-        }
-
-        codeView.setSyntaxPatternsMap(syntaxPatterns)
-        codeView.reHighlightSyntax()
-    }
-
-// ================= RUN / STOP =================
-
-    private fun toggleRunState() {
-        isRunning = !isRunning
-
-        if (isRunning) {
-            fabExecute.setImageResource(R.drawable.ic_stop)
-            fabExecute.backgroundTintList =
-                ColorStateList.valueOf(Color.parseColor("#E53935")) // красный
-        } else {
-            fabExecute.setImageResource(R.drawable.ic_start)
-            fabExecute.backgroundTintList =
-                ColorStateList.valueOf(Color.parseColor("#2ECC71")) // зелёный
-        }
-    }
-
-// ================= OPEN =================
 
     private val openFileLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -237,33 +153,68 @@ class MainActivity : AppCompatActivity() {
 
             val text = contentResolver.openInputStream(uri)
                 ?.bufferedReader()
-                ?.use { it.readText() }
-                ?: return@registerForActivityResult
+                ?.use { it.readText() } ?: return@registerForActivityResult
+
+            val name = getFileName(uri)
 
             codeView.setText(text)
-            currentFileUri = uri
-            txtFileName.text = getFileName(uri)
-
-            currentFileName = getFileName(uri)
-            isDirty = false
-            updateFileTitle()
+            editorState.onFileOpened(uri, name)
+            updateTitle()
         }
 
-// ================= SAVE =================
-
     private val saveFileLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.CreateDocument("text/x-python")
-        ) { uri ->
+        registerForActivityResult(ActivityResultContracts.CreateDocument("text/x-python")) { uri ->
             uri ?: return@registerForActivityResult
 
             writeFile(uri)
 
-            currentFileUri = uri
-            currentFileName = getFileName(uri)
-            isDirty = false
-            updateFileTitle()
+            val name = getFileName(uri)
+            editorState.onFileSaved(uri, name)
+            updateTitle()
         }
 
+    // ================= RUN =================
 
+    private fun toggleRunState() {
+        isRunning = !isRunning
+
+        if (isRunning) {
+            fabExecute.setImageResource(R.drawable.ic_stop)
+            fabExecute.backgroundTintList =
+                ColorStateList.valueOf(Color.parseColor("#E53935"))
+        } else {
+            fabExecute.setImageResource(R.drawable.ic_start)
+            fabExecute.backgroundTintList =
+                ColorStateList.valueOf(Color.parseColor("#2ECC71"))
+        }
+    }
+
+    // ================= SYNTAX =================
+
+    private fun setPairs() {
+        codeView.setPairCompleteMap(
+            hashMapOf(
+                '{' to '}',
+                '[' to ']',
+                '(' to ')',
+                '"' to '"',
+                '\'' to '\''
+            )
+        )
+    }
+
+    private fun setSyntax() {
+        val keywords = listOf(
+            "False","None","True","and","as","assert","break","class","continue","def","del",
+            "elif","else","except","finally","for","from","global","if","import","in","is",
+            "lambda","nonlocal","not","or","pass","raise","return","try","while","with","yield",
+            "async","await"
+        )
+
+        val map = mutableMapOf<Pattern, Int>()
+        map[("\\b(${keywords.joinToString("|")})\\b").toRegex().toPattern()] = "#569CD6".toColorInt()
+
+        codeView.setSyntaxPatternsMap(map)
+        codeView.reHighlightSyntax()
+    }
 }
