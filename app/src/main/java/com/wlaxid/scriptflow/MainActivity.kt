@@ -4,9 +4,7 @@ import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.widget.addTextChangedListener
@@ -17,6 +15,7 @@ import com.wlaxid.scriptflow.editor.EditorController
 import com.wlaxid.scriptflow.editor.EditorState
 import androidx.core.graphics.toColorInt
 import com.wlaxid.scriptflow.editor.FileController
+import com.wlaxid.scriptflow.ui.toolbar.ToolbarController
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,11 +24,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fileController: FileController
     private lateinit var codeView: CodeView
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var txtFileName: TextView
-    private lateinit var btnOptions: ImageView
     private lateinit var itemOpen: LinearLayout
     private lateinit var itemSave: LinearLayout
     private lateinit var fabExecute: FloatingActionButton
+    private lateinit var toolbarController: ToolbarController
+
 
     private var isRunning = false
 
@@ -42,19 +41,19 @@ class MainActivity : AppCompatActivity() {
         setupEditor()
         setupListeners()
         setupFileController()
-        updateTitle()
+        setupToolbar()
+        toolbarController.setTitle(editorState.displayName())
 
     }
 
     private fun bindViews() {
         codeView = findViewById(R.id.codeView)
         drawerLayout = findViewById(R.id.drawerLayout)
-        txtFileName = findViewById(R.id.txtFileName)
-        btnOptions = findViewById(R.id.btnOptions)
         itemOpen = findViewById(R.id.itemOpen)
         itemSave = findViewById(R.id.itemSave)
         fabExecute = findViewById(R.id.fabExecute)
     }
+
 
     private fun setupEditor() {
         editorController = EditorController(codeView)
@@ -69,11 +68,11 @@ class MainActivity : AppCompatActivity() {
             editorController = editorController,
             onFileOpened = { uri, name ->
                 editorState.onFileOpened(uri, name)
-                updateTitle()
+                toolbarController.setTitle(editorState.displayName())
             },
             onFileSaved = { uri, name ->
                 editorState.onFileSaved(uri, name)
-                updateTitle()
+                toolbarController.setTitle(editorState.displayName())
             }
         )
     }
@@ -84,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         codeView.addTextChangedListener {
             if (!editorState.isDirty) {
                 editorState.onTextChanged()
-                updateTitle()
+                toolbarController.setTitle(editorState.displayName())
             }
         }
 
@@ -98,14 +97,6 @@ class MainActivity : AppCompatActivity() {
         itemSave.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
             fileController.save(editorState.currentFileName)
-        }
-
-        btnOptions.setOnClickListener {
-            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.closeDrawer(GravityCompat.START)
-            } else {
-                drawerLayout.openDrawer(GravityCompat.START)
-            }
         }
 
         drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
@@ -124,14 +115,21 @@ class MainActivity : AppCompatActivity() {
             override fun onDrawerStateChanged(newState: Int) {}
         })
     }
-
-    fun updateTitle() {
-        txtFileName.text = editorState.displayName()
-    }
     private fun hideKeyboard() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(codeView.windowToken, 0)
     }
+
+    private fun setupToolbar() {
+        val toolbarRoot = findViewById<View>(R.id.topToolbar)
+
+        toolbarController = ToolbarController(
+            root = toolbarRoot,
+            drawerLayout = drawerLayout
+            // остальное пока заглушки
+        )
+    }
+
 
     // ================= RUN =================
 
