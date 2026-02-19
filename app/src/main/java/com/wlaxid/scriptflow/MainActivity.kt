@@ -6,6 +6,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.drawerlayout.widget.DrawerLayout
@@ -13,8 +14,9 @@ import com.amrdeveloper.codeview.CodeView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wlaxid.scriptflow.editor.EditorController
 import com.wlaxid.scriptflow.editor.EditorState
-import androidx.core.graphics.toColorInt
 import com.wlaxid.scriptflow.editor.FileController
+import com.wlaxid.scriptflow.runtime.RunController
+import com.wlaxid.scriptflow.runtime.RunState
 import com.wlaxid.scriptflow.ui.toolbar.ToolbarController
 
 class MainActivity : AppCompatActivity() {
@@ -28,9 +30,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var itemSave: LinearLayout
     private lateinit var fabExecute: FloatingActionButton
     private lateinit var toolbarController: ToolbarController
+    private lateinit var runController: RunController
 
-
-    private var isRunning = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +39,8 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         bindViews()
+        runController = RunController()
+        renderRunState(runController.currentState())
         setupEditor()
         setupListeners()
         setupFileController()
@@ -87,7 +90,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        fabExecute.setOnClickListener { toggleRunState() }
+        fabExecute.setOnClickListener {
+            val state = runController.toggle()
+            renderRunState(state)
+        }
+
 
         itemOpen.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
@@ -130,20 +137,20 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun renderRunState(state: RunState) {
+        when (state) {
+            RunState.Running -> {
+                fabExecute.setImageResource(R.drawable.ic_stop)
+                fabExecute.backgroundTintList =
+                    ColorStateList.valueOf("#E53935".toColorInt())
+            }
 
-    // ================= RUN =================
-
-    private fun toggleRunState() {
-        isRunning = !isRunning
-
-        if (isRunning) {
-            fabExecute.setImageResource(R.drawable.ic_stop)
-            fabExecute.backgroundTintList =
-                ColorStateList.valueOf("#E53935".toColorInt())
-        } else {
-            fabExecute.setImageResource(R.drawable.ic_start)
-            fabExecute.backgroundTintList =
-                ColorStateList.valueOf("#2ECC71".toColorInt())
+            RunState.Stopped -> {
+                fabExecute.setImageResource(R.drawable.ic_start)
+                fabExecute.backgroundTintList =
+                    ColorStateList.valueOf("#2ECC71".toColorInt())
+            }
         }
     }
+
 }
