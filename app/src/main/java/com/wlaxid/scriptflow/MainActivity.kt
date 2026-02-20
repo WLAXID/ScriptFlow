@@ -108,15 +108,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
+
             override fun onDrawerOpened(drawerView: View) {
                 codeView.isEnabled = false
                 codeView.clearFocus()
                 hideKeyboard()
+
+                fabExecute.hide()
+                fabExecute.isClickable = false
             }
 
             override fun onDrawerClosed(drawerView: View) {
                 codeView.isEnabled = true
                 codeView.requestFocus()
+
+                fabExecute.show()
+                fabExecute.isClickable = true
             }
 
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
