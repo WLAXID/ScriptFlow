@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.drawerlayout.widget.DrawerLayout
 import com.amrdeveloper.codeview.CodeView
@@ -41,10 +43,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        applyUniversalInsets()
 
         bindViews()
-
         setupConsole()
 
         runController = RunController(
@@ -211,6 +215,33 @@ for i in range(3):
 """
         codeView.post {
             editorController.setText(sample)
+        }
+    }
+
+    private fun applyUniversalInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { view, insets ->
+
+            val status = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val gestures = insets.getInsets(WindowInsetsCompat.Type.systemGestures())
+            val tappable = insets.getInsets(WindowInsetsCompat.Type.tappableElement())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+
+            val top = status.top
+
+            val bottom = maxOf(
+                nav.bottom,
+                gestures.bottom,
+                tappable.bottom,
+                ime.bottom
+            )
+
+            val left = maxOf(status.left, gestures.left)
+            val right = maxOf(status.right, gestures.right)
+
+            view.setPadding(left, top, right, bottom)
+
+            insets
         }
     }
 
