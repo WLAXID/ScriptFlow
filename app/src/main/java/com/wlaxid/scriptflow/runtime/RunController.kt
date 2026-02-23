@@ -73,11 +73,19 @@ class RunController(
             addAction(PythonRunnerService.BROADCAST_ERROR)
             addAction(PythonRunnerService.BROADCAST_FINISHED)
         }
-        context.applicationContext.registerReceiver(
-            receiver,
-            filter,
-            Context.RECEIVER_NOT_EXPORTED
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.applicationContext.registerReceiver(
+                receiver,
+                filter,
+                Context.RECEIVER_NOT_EXPORTED
+            )
+        } else {
+            @Suppress("DEPRECATION", "UnspecifiedRegisterReceiverFlag")
+            context.applicationContext.registerReceiver(
+                receiver,
+                filter
+            )
+        }
     }
 
     fun execute(code: String) {
