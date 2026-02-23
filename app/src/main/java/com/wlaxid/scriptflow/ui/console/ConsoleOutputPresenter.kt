@@ -40,16 +40,10 @@ class ConsoleOutputPresenter(
     }
 
     fun onOutput(text: String) {
-        consoleController.appendMessage(
-            text,
-            ConsoleMessageType.OUTPUT
-        )
+        consoleController.appendFragment(text, ConsoleMessageType.OUTPUT)
     }
 
     fun onError(text: String) {
-        consoleController.appendMessage(
-            text,
-            ConsoleMessageType.ERROR
-        )
+        consoleController.appendFragment(text, ConsoleMessageType.ERROR)
     }
 }

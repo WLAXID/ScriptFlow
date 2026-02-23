@@ -28,6 +28,7 @@ class ConsoleController(
     private var startY = 0f
     private var startHeight = 0
     private var dragging = false
+    private val partialLine = StringBuilder()
 
     init {
         root.doOnLayout {
@@ -52,42 +53,25 @@ class ConsoleController(
         output.text = ""
     }
 
-    fun appendMessage(text: String, type: ConsoleMessageType) {
-        val span = SpannableString(text + "\n")
+    fun appendMessage(
+        text: String,
+        type: ConsoleMessageType,
+        newline: Boolean = true
+    ) {
+        val finalText = if (newline) text + "\n" else text
+        val span = SpannableString(finalText)
 
         when (type) {
-            ConsoleMessageType.OUTPUT -> {
-                span.setSpan(
-                    ForegroundColorSpan(colorOutput),
-                    0,
-                    span.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
+            ConsoleMessageType.OUTPUT ->
+                span.setSpan(ForegroundColorSpan(colorOutput), 0, span.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
             ConsoleMessageType.SYSTEM -> {
-                span.setSpan(
-                    ForegroundColorSpan(colorSystem),
-                    0,
-                    span.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                span.setSpan(
-                    AlignmentSpan.Standard(Layout.Alignment.ALIGN_CENTER),
-                    0,
-                    span.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
+                span.setSpan(ForegroundColorSpan(colorSystem), 0, span.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                span.setSpan(AlignmentSpan.Standard(Layout.Alignment.ALIGN_CENTER), 0, span.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
 
-            ConsoleMessageType.ERROR -> {
-                span.setSpan(
-                    ForegroundColorSpan(colorError),
-                    0,
-                    span.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
+            ConsoleMessageType.ERROR ->
+                span.setSpan(ForegroundColorSpan(colorError), 0, span.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
 
         output.append(span)
@@ -159,4 +143,26 @@ class ConsoleController(
 
     private fun dp(value: Int): Int =
         (value * root.resources.displayMetrics.density).toInt()
+
+    fun appendFragment(text: String, type: ConsoleMessageType) {
+        val clean = text.replace("\r", "")
+        var start = 0
+
+        while (true) {
+            val idx = clean.indexOf('\n', start)
+            if (idx == -1) {
+                // нет конца строки - копим
+                partialLine.append(clean.substring(start))
+                break
+            }
+
+            // есть завершённая строка
+            partialLine.append(clean.substring(start, idx))
+            appendMessage(partialLine.toString(), type)
+            partialLine.setLength(0)
+
+            start = idx + 1
+            if (start >= clean.length) break
+        }
+    }
 }

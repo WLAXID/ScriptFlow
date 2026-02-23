@@ -101,28 +101,34 @@ class PythonRunnerService : Service() {
                 val builtins = pyInst.getModule("builtins")
 
                 globals = builtins.callAttr("dict")
+                globals!!.callAttr("__setitem__", "__service__", this)
                 globals!!.callAttr("__setitem__", "__builtins__", builtins)
                 globals!!.callAttr("__setitem__", "__user_code__", code)
                 globals!!.callAttr("__setitem__", "__cancelled__", false)
 
                 val wrapper =
                     """
-                    import sys, io, traceback, time
+                    import sys, traceback
                     
-                    out_buf = io.StringIO()
-                    err_buf = io.StringIO()
                     error = False
                     
-                    _old_out = sys.stdout
-                    _old_err = sys.stderr
+                    class Stream:
+                        def __init__(self, emit):
+                            self.emit = emit
                     
-                    sys.stdout = out_buf
-                    sys.stderr = err_buf
+                        def write(self, text):
+                            if text:
+                                self.emit(str(text))
+                    
+                        def flush(self):
+                            pass
+                    
+                    sys.stdout = Stream(__service__.emitStdout)
+                    sys.stderr = Stream(__service__.emitStderr)
                     
                     def _check_cancel(frame, event, arg):
                         if globals().get("__cancelled__"):
                             raise KeyboardInterrupt("cancelled")
-                        #time.sleep(0.001)
                         return _check_cancel
                     
                     sys.settrace(_check_cancel)
@@ -131,62 +137,18 @@ class PythonRunnerService : Service() {
                         exec(__user_code__, globals(), globals())
                     except KeyboardInterrupt:
                         error = True
-                        print("Execution cancelled by user", file=sys.stderr)
+                        sys.stderr.write("Execution cancelled by user\n")
                     except Exception:
                         error = True
-                        traceback.print_exc(file=sys.stderr)
+                        traceback.print_exc()
                     finally:
                         sys.settrace(None)
-                        sys.stdout = _old_out
-                        sys.stderr = _old_err
                     
-                    __stdout__ = out_buf.getvalue()
-                    __stderr__ = err_buf.getvalue()
                     __error__ = error
                     """.trimIndent()
 
                 builtins.callAttr("exec", wrapper, globals, globals)
 
-                val stdout = globals!!
-                    .callAttr("__getitem__", "__stdout__")
-                    ?.toString()
-                    ?: ""
-
-                val stderr = globals!!
-                    .callAttr("__getitem__", "__stderr__")
-                    ?.toString()
-                    ?: ""
-
-                val isError = globals!!
-                    .callAttr("__getitem__", "__error__")
-                    ?.toJava(Boolean::class.java)
-                    ?: false
-
-                if (stdout.isNotBlank()) {
-                    sendBroadcast(
-                        Intent(BROADCAST_OUTPUT)
-                            .setPackage(packageName)
-                            .putExtra(EXTRA_TEXT, stdout)
-                            .putExtra(EXTRA_RUN_ID, currentRunId)
-                    )
-                }
-
-                if (stderr.isNotBlank()) {
-                    sendBroadcast(
-                        Intent(BROADCAST_ERROR)
-                            .setPackage(packageName)
-                            .putExtra(EXTRA_TEXT, stderr)
-                            .putExtra(EXTRA_RUN_ID, currentRunId)
-                    )
-                } else if (isError) {
-                    // если ошибка была, но stderr пуст
-                    sendBroadcast(
-                        Intent(BROADCAST_ERROR)
-                            .setPackage(packageName)
-                            .putExtra(EXTRA_TEXT, "Script failed (no stderr captured)")
-                            .putExtra(EXTRA_RUN_ID, currentRunId)
-                    )
-                }
             } catch (t: Throwable) {
                 sendBroadcast(
                     Intent(BROADCAST_ERROR)
@@ -221,5 +183,27 @@ class PythonRunnerService : Service() {
     override fun onDestroy() {
         try { globals?.callAttr("__setitem__", "__cancelled__", true) } catch (_: Exception) {}
         super.onDestroy()
+    }
+
+    @Suppress("unused") // ИСПОЛЬЗУЕТСЯ В CHAQUOPY
+    fun emitStdout(text: String?) {
+        if (text.isNullOrEmpty()) return
+        sendBroadcast(
+            Intent(BROADCAST_OUTPUT)
+                .setPackage(packageName)
+                .putExtra(EXTRA_TEXT, text)
+                .putExtra(EXTRA_RUN_ID, currentRunId)
+        )
+    }
+
+    @Suppress("unused") // ИСПОЛЬЗУЕТСЯ В CHAQUOPY
+    fun emitStderr(text: String?) {
+        if (text.isNullOrEmpty()) return
+        sendBroadcast(
+            Intent(BROADCAST_ERROR)
+                .setPackage(packageName)
+                .putExtra(EXTRA_TEXT, text)
+                .putExtra(EXTRA_RUN_ID, currentRunId)
+        )
     }
 }
