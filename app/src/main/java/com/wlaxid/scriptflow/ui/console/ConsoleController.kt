@@ -16,6 +16,7 @@ class ConsoleController(
     private val root: View
 ) {
 
+    private val MAX_CHARS = 200_000
     private val colorOutput = 0xFF00FF7F.toInt()   // зелёный
     private val colorSystem = 0xFF888888.toInt()   // серый
     private val colorError  = 0xFFFF5555.toInt()   // красный
@@ -85,6 +86,15 @@ class ConsoleController(
             if (scroll is android.widget.ScrollView) {
                 scroll.fullScroll(View.FOCUS_DOWN)
             }
+        }
+
+        enforceConsoleBufferLimit()
+    }
+
+    private fun enforceConsoleBufferLimit() {
+        val text = output.text
+        if (text.length > MAX_CHARS) {
+            output.text = text.takeLast(MAX_CHARS)
         }
     }
 

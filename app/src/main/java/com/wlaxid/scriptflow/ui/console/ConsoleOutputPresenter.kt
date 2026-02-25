@@ -11,28 +11,28 @@ class ConsoleOutputPresenter(
             RunState.Running -> {
                 consoleController.clear()
                 consoleController.appendMessage(
-                    "=== Running ===\n",
+                    "=== Running ===",
                     ConsoleMessageType.SYSTEM
                 )
             }
 
             RunState.Finished -> {
                 consoleController.appendMessage(
-                    "=== Finished ===",
+                    "\n=== Finished ===",
                     ConsoleMessageType.SYSTEM
                 )
             }
 
             RunState.Error -> {
                 consoleController.appendMessage(
-                    "=== Finished with errors ===",
+                    "\n=== Finished with errors ===",
                     ConsoleMessageType.SYSTEM
                 )
             }
 
             RunState.Cancelled -> {
                 consoleController.appendMessage(
-                    "=== Cancelled ===",
+                    "\n=== Cancelled ===",
                     ConsoleMessageType.SYSTEM
                 )
             }
