@@ -20,6 +20,7 @@ class ConsoleController(
     private val colorSystem = 0xFF888888.toInt()   // серый
     private val colorError  = 0xFFFF5555.toInt()   // красный
     private val output: TextView = root.findViewById(R.id.consoleOutput)
+    private val scroll: View = root.findViewById(R.id.consoleScroll)
     private val handle: View = root.findViewById(R.id.consoleHandle)
     private val title: View = root.findViewById(R.id.consoleTitle)
     private val minHeight: Int get() = handle.height
@@ -47,6 +48,10 @@ class ConsoleController(
         }
 
         setupDrag()
+
+        output.setTextIsSelectable(true)
+        output.isFocusable = true
+        output.isFocusableInTouchMode = true
     }
 
     fun clear() {
@@ -75,6 +80,12 @@ class ConsoleController(
         }
 
         output.append(span)
+
+        scroll.post {
+            if (scroll is android.widget.ScrollView) {
+                scroll.fullScroll(View.FOCUS_DOWN)
+            }
+        }
     }
 
     fun expand() {
