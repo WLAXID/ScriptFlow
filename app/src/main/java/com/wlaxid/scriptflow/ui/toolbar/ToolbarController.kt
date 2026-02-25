@@ -3,12 +3,14 @@ package com.wlaxid.scriptflow.ui.toolbar
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wlaxid.scriptflow.R
 
 class ToolbarController(
     root: View,
+    fabRoot: View,
     private val drawerLayout: DrawerLayout,
     onUndo: () -> Unit = {},
     onRedo: () -> Unit = {},
@@ -20,12 +22,20 @@ class ToolbarController(
     private val btnOptions: ImageView = root.findViewById(R.id.btnOptions)
     private val txtFileName: TextView = root.findViewById(R.id.txtFileName)
 
-    // заглушки
-    private val btnUndo: ImageView = root.findViewById(R.id.btnUndo)
-    private val btnRedo: ImageView = root.findViewById(R.id.btnRedo)
-    private val btnSearch: ImageView = root.findViewById(R.id.btnSearch)
-    private val btnScreenshot: ImageView = root.findViewById(R.id.btnScreenshot)
-    private val btnEyedropper: ImageView = root.findViewById(R.id.btnEyedropper)
+    private val btnUndo: FloatingActionButton =
+        fabRoot.findViewById(R.id.fabUndo)
+
+    private val btnRedo: FloatingActionButton =
+        fabRoot.findViewById(R.id.fabRedo)
+
+    private val btnSearch: FloatingActionButton =
+        fabRoot.findViewById(R.id.fabSearch)
+
+    private val btnScreenshot: FloatingActionButton =
+        fabRoot.findViewById(R.id.fabScreenshot)
+
+    private val btnEyedropper: FloatingActionButton =
+        fabRoot.findViewById(R.id.fabEyedropper)
 
     init {
         btnOptions.setOnClickListener {
@@ -36,7 +46,6 @@ class ToolbarController(
             }
         }
 
-        // пока заглушки — просто кликабельные
         btnUndo.setOnClickListener { onUndo() }
         btnRedo.setOnClickListener { onRedo() }
         btnSearch.setOnClickListener { onSearch() }
@@ -47,5 +56,4 @@ class ToolbarController(
     fun setTitle(title: String) {
         txtFileName.text = title
     }
-
 }

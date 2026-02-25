@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.androidx.documentfile)
 
     implementation(libs.codeview)
+    implementation(libs.androidx.animation.core)
 }
 
 chaquopy {

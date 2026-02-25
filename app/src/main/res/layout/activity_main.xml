@@ -35,15 +35,9 @@
                     android:gravity="top|start"
                     android:textColor="#FFFFFF" />
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fabExecute"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|end"
-                    android:layout_margin="20dp"
-                    android:contentDescription="@string/action_run"
-                    android:src="@drawable/ic_start"
-                    app:backgroundTint="#2ECC71" />
+                <include
+                    android:id="@+id/fabActionsInclude"
+                    layout="@layout/fab_actions" />
 
             </FrameLayout>
 

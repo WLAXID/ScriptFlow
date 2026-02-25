@@ -8,9 +8,6 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.drawerlayout.widget.DrawerLayout
 import com.amrdeveloper.codeview.CodeView
@@ -18,11 +15,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wlaxid.scriptflow.editor.EditorController
 import com.wlaxid.scriptflow.editor.EditorState
 import com.wlaxid.scriptflow.editor.FileController
-import com.wlaxid.scriptflow.runtime.RunController
 import com.wlaxid.scriptflow.runtime.RunState
 import com.wlaxid.scriptflow.ui.toolbar.ToolbarController
 import com.wlaxid.scriptflow.ui.console.ConsoleController
 import com.wlaxid.scriptflow.ui.console.ConsoleOutputPresenter
+import com.wlaxid.scriptflow.ui.fab.FabActionsController
+import com.wlaxid.scriptflow.runtime.RunSessionController
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,11 +32,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var itemOpen: LinearLayout
     private lateinit var itemSave: LinearLayout
     private lateinit var fabExecute: FloatingActionButton
+    private lateinit var fabActionsRoot: View
+    private lateinit var fabActionsController: FabActionsController
     private lateinit var toolbarController: ToolbarController
-    private lateinit var runController: RunController
     private lateinit var consoleController: ConsoleController
     private lateinit var consoleRoot: View
     private lateinit var consolePresenter: ConsoleOutputPresenter
+    private lateinit var runSessionController: RunSessionController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,21 +46,8 @@ class MainActivity : AppCompatActivity() {
 
         bindViews()
         setupConsole()
-
-        runController = RunController(
-            this,
-            onStateChanged = { state ->
-                renderRunState(state)
-                consolePresenter.onStateChanged(state)
-            },
-            onOutput = { text ->
-                consolePresenter.onOutput(text)
-            },
-            onError = { err ->
-                consolePresenter.onError(err)
-            }
-        )
-
+        setupRunSession()
+        setupFabActions()
         observeKeyboard()
         setupEditor()
         setupListeners()
@@ -74,8 +61,20 @@ class MainActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawerLayout)
         itemOpen = findViewById(R.id.itemOpen)
         itemSave = findViewById(R.id.itemSave)
-        fabExecute = findViewById(R.id.fabExecute)
+        fabActionsRoot = findViewById(R.id.fabActionsInclude)
+        fabExecute = fabActionsRoot.findViewById(R.id.fabExecute)
         consoleRoot = findViewById(R.id.consoleSheet)
+    }
+
+    private fun setupFabActions() {
+        fabActionsController = FabActionsController(
+            root = fabActionsRoot,
+            onUndo = { },
+            onRedo = {  },
+            onSearch = { },
+            onScreenshot = { },
+            onEyedropper = { }
+        )
     }
 
     private fun setupConsole() {
@@ -259,12 +258,12 @@ for i in range(3):
         }
 
         fabExecute.setOnClickListener {
-            when (runController.currentState()) {
-                RunState.Running -> runController.stop()
+            when (runSessionController.currentState()) {
+                RunState.Running -> runSessionController.stop()
                 RunState.Finished,
                 RunState.Error,
                 RunState.Cancelled -> {
-                    runController.execute(editorController.getText())
+                    runSessionController.execute(editorController.getText())
                 }
             }
         }
@@ -297,6 +296,16 @@ for i in range(3):
         })
     }
 
+    private fun setupRunSession() {
+        runSessionController = RunSessionController(
+            context = this,
+            consolePresenter = consolePresenter,
+            onUiStateChanged = { state ->
+                renderRunState(state)
+            }
+        )
+    }
+
     private fun hideKeyboard() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(codeView.windowToken, 0)
@@ -304,16 +313,23 @@ for i in range(3):
 
     private fun setupToolbar() {
         val toolbarRoot = findViewById<View>(R.id.topToolbar)
+        val fabRoot = findViewById<View>(R.id.fabActionsInclude)
 
         toolbarController = ToolbarController(
             root = toolbarRoot,
-            drawerLayout = drawerLayout
+            fabRoot = fabRoot,
+            drawerLayout = drawerLayout,
+            onUndo = { },
+            onRedo = { },
+            onSearch = { },
+            onScreenshot = { },
+            onEyedropper = {  }
         )
     }
 
     override fun onDestroy() {
         try {
-            runController.destroy()
+            runSessionController.destroy()
         } catch (_: Exception) {
             // ничего - если runController ещё не инициализирован или уже разрушен
         }

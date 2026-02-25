@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="FabMini">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fabSize">mini</item>
+        <item name="android:layout_marginStart">12dp</item>
+        <item name="backgroundTint">@color/white</item>
+        <item name="elevation">1dp</item>
+    </style>
+</resources>
