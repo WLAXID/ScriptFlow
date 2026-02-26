@@ -14,7 +14,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
         android:src="@drawable/ic_start"
-        app:backgroundTint="#2ECC71" />
+        app:backgroundTint="#00FF19" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabActions"
@@ -24,7 +24,7 @@
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="88dp"
         android:src="@drawable/ic_settings"
-        app:backgroundTint="#444444" />
+        app:backgroundTint="#FFFFFF" />
 
     <LinearLayout
         android:id="@+id/fabMiniContainer"

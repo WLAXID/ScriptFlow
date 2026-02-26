@@ -1,25 +1,21 @@
 package com.wlaxid.scriptflow
 
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.drawerlayout.widget.DrawerLayout
 import com.amrdeveloper.codeview.CodeView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wlaxid.scriptflow.editor.EditorController
 import com.wlaxid.scriptflow.editor.EditorState
 import com.wlaxid.scriptflow.editor.FileController
 import com.wlaxid.scriptflow.runtime.RunState
-import com.wlaxid.scriptflow.ui.toolbar.ToolbarController
+import com.wlaxid.scriptflow.ui.actions.EditorActionsController
 import com.wlaxid.scriptflow.ui.console.ConsoleController
 import com.wlaxid.scriptflow.ui.console.ConsoleOutputPresenter
-import com.wlaxid.scriptflow.ui.fab.FabActionsController
 import com.wlaxid.scriptflow.runtime.RunSessionController
 
 class MainActivity : AppCompatActivity() {
@@ -31,10 +27,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var itemOpen: LinearLayout
     private lateinit var itemSave: LinearLayout
-    private lateinit var fabExecute: FloatingActionButton
     private lateinit var fabActionsRoot: View
-    private lateinit var fabActionsController: FabActionsController
-    private lateinit var toolbarController: ToolbarController
+    private lateinit var editorActionsController: EditorActionsController
     private lateinit var consoleController: ConsoleController
     private lateinit var consoleRoot: View
     private lateinit var consolePresenter: ConsoleOutputPresenter
@@ -47,13 +41,12 @@ class MainActivity : AppCompatActivity() {
         bindViews()
         setupConsole()
         setupRunSession()
-        setupFabActions()
         observeKeyboard()
         setupEditor()
         setupListeners()
         setupFileController()
-        setupToolbar()
-        toolbarController.setTitle(editorState.displayName())
+        setupEditorActions()
+        editorActionsController.setTitle(editorState.displayName())
     }
 
     private fun bindViews() {
@@ -62,19 +55,7 @@ class MainActivity : AppCompatActivity() {
         itemOpen = findViewById(R.id.itemOpen)
         itemSave = findViewById(R.id.itemSave)
         fabActionsRoot = findViewById(R.id.fabActionsInclude)
-        fabExecute = fabActionsRoot.findViewById(R.id.fabExecute)
         consoleRoot = findViewById(R.id.consoleSheet)
-    }
-
-    private fun setupFabActions() {
-        fabActionsController = FabActionsController(
-            root = fabActionsRoot,
-            onUndo = { },
-            onRedo = {  },
-            onSearch = { },
-            onScreenshot = { },
-            onEyedropper = { }
-        )
     }
 
     private fun setupConsole() {
@@ -221,11 +202,11 @@ for i in range(3):
             editorController = editorController,
             onFileOpened = { uri, name ->
                 editorState.onFileOpened(uri, name)
-                toolbarController.setTitle(editorState.displayName())
+                editorActionsController.setTitle(editorState.displayName())
             },
             onFileSaved = { uri, name ->
                 editorState.onFileSaved(uri, name)
-                toolbarController.setTitle(editorState.displayName())
+                editorActionsController.setTitle(editorState.displayName())
             }
         )
     }
@@ -253,18 +234,7 @@ for i in range(3):
         codeView.addTextChangedListener {
             if (!editorState.isDirty) {
                 editorState.onTextChanged()
-                toolbarController.setTitle(editorState.displayName())
-            }
-        }
-
-        fabExecute.setOnClickListener {
-            when (runSessionController.currentState()) {
-                RunState.Running -> runSessionController.stop()
-                RunState.Finished,
-                RunState.Error,
-                RunState.Cancelled -> {
-                    runSessionController.execute(editorController.getText())
-                }
+                editorActionsController.setTitle(editorState.displayName())
             }
         }
 
@@ -301,29 +271,34 @@ for i in range(3):
             context = this,
             consolePresenter = consolePresenter,
             onUiStateChanged = { state ->
-                renderRunState(state)
+                editorActionsController.renderRunState(state)
             }
         )
     }
-
     private fun hideKeyboard() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(codeView.windowToken, 0)
     }
 
-    private fun setupToolbar() {
+    private fun setupEditorActions() {
         val toolbarRoot = findViewById<View>(R.id.topToolbar)
         val fabRoot = findViewById<View>(R.id.fabActionsInclude)
 
-        toolbarController = ToolbarController(
-            root = toolbarRoot,
+        editorActionsController = EditorActionsController(
+            toolbarRoot = toolbarRoot,
             fabRoot = fabRoot,
             drawerLayout = drawerLayout,
             onUndo = { },
             onRedo = { },
             onSearch = { },
             onScreenshot = { },
-            onEyedropper = {  }
+            onEyedropper = { },
+            onExecute = {
+                when (runSessionController.currentState()) {
+                    RunState.Running -> runSessionController.stop()
+                    else -> runSessionController.execute(editorController.getText())
+                }
+            }
         )
     }
 
@@ -334,35 +309,5 @@ for i in range(3):
             // ничего - если runController ещё не инициализирован или уже разрушен
         }
         super.onDestroy()
-    }
-
-    private fun renderRunState(state: RunState) {
-        fabExecute.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-
-        when (state) {
-            RunState.Running -> {
-                fabExecute.setImageResource(R.drawable.ic_stop)
-                fabExecute.backgroundTintList =
-                    ColorStateList.valueOf("#E53935".toColorInt())
-            }
-
-            RunState.Finished -> {
-                fabExecute.setImageResource(R.drawable.ic_start)
-                fabExecute.backgroundTintList =
-                    ColorStateList.valueOf("#2ECC71".toColorInt())
-            }
-
-            RunState.Error -> {
-                fabExecute.setImageResource(R.drawable.ic_start)
-                fabExecute.backgroundTintList =
-                    ColorStateList.valueOf("#F39C12".toColorInt()) // оранжевый
-            }
-
-            RunState.Cancelled -> {
-                fabExecute.setImageResource(R.drawable.ic_start)
-                fabExecute.backgroundTintList =
-                    ColorStateList.valueOf("#95A5A6".toColorInt()) // серый
-            }
-        }
     }
 }
