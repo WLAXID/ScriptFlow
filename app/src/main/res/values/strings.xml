@@ -1,15 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ScriptFlow</string>
 
+    <!-- ===== APP ===== -->
+    <string name="app_name">ScriptFlow</string>
     <string name="code_editor">Редактор кода</string>
+
+    <!-- ===== TOOLBAR ===== -->
     <string name="toolbar_menu">Меню</string>
-    <string name="default_filename">script.py</string>
+    <string name="toolbar_quick_save">Быстрое сохранение</string>
     <string name="toolbar_filename">Имя файла</string>
+
     <string name="toolbar_undo">Отменить</string>
     <string name="toolbar_redo">Восстановить</string>
-    <string name="toolbar_eyedropper">Пипетка</string>
-    <string name="toolbar_screenshot">Скриншот</string>
     <string name="toolbar_search">Поиск</string>
+    <string name="toolbar_screenshot">Скриншот</string>
+    <string name="toolbar_eyedropper">Пипетка</string>
+
+    <!-- ===== FILE ===== -->
+    <string name="default_filename">fuckoff.py</string>
+
+    <!-- ===== ACTIONS ===== -->
     <string name="action_run">Выполнить</string>
     <string name="action_stop">Остановить</string>
+
+    <!-- ===== FAB ACTIONS ===== -->
+    <string name="fab_execute">Выполнить</string>
+    <string name="fab_actions">Действия</string>
+    <string name="fab_undo">Отменить</string>
+    <string name="fab_redo">Повторить</string>
+    <string name="fab_search">Поиск</string>
+    <string name="fab_screenshot">Скриншот</string>
+    <string name="fab_eyedropper">Пипетка</string>
+
+    <!-- ===== DRAWER ===== -->
+    <string name="drawer_title">Меню</string>
+    <string name="drawer_open_file">Открыть файл</string>
+    <string name="drawer_save_file">Сохранить файл</string>
+    <string name="drawer_settings">Настройки</string>
+
+    <!-- ===== CONSOLE ===== -->
+    <string name="console_title">Console</string>
+
 </resources>

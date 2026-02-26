@@ -3,9 +3,17 @@
     <style name="FabMini">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
+
+        <!-- ВИЗУАЛ -->
         <item name="fabSize">mini</item>
-        <item name="android:layout_marginStart">12dp</item>
         <item name="backgroundTint">@color/white</item>
         <item name="elevation">1dp</item>
+
+        <!-- ЗОНА КЛИКА -->
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+
+        <!-- ОТСТУП МЕЖДУ КНОПКАМИ -->
+        <item name="android:layout_marginStart">12dp</item>
     </style>
 </resources>

@@ -9,6 +9,7 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabExecute"
+        android:contentDescription="@string/action_run"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
@@ -18,6 +19,7 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabActions"
+        android:contentDescription="@string/fab_actions"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
@@ -41,27 +43,32 @@
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabUndo"
+            android:contentDescription="@string/fab_undo"
             style="@style/FabMini"
             android:src="@drawable/ic_undo" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabRedo"
+            android:contentDescription="@string/fab_redo"
             style="@style/FabMini"
             android:src="@drawable/ic_redo" />
 
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabSearch"
+            android:contentDescription="@string/fab_search"
             style="@style/FabMini"
             android:src="@drawable/ic_search" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabScreenshot"
+            android:contentDescription="@string/fab_screenshot"
             style="@style/FabMini"
             android:src="@drawable/ic_screenshot" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabEyedropper"
+            android:contentDescription="@string/fab_eyedropper"
             style="@style/FabMini"
             android:src="@drawable/ic_eyedropper" />
 

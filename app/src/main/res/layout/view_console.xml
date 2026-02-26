@@ -23,7 +23,7 @@
         android:id="@+id/consoleTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Console"
+        android:text="@string/console_title"
         android:textColor="#AAAAAA"
         android:padding="8dp" />
 

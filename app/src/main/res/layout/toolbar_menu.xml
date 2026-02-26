@@ -9,41 +9,43 @@
     app:contentInsetStart="0dp"
     app:contentInsetEnd="0dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- МЕНЮ -->
+    <ImageView
+        android:id="@+id/btnOptions"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="start|center_vertical"
+        android:padding="12dp"
+        android:src="@drawable/ic_options"
+        android:clickable="true"
+        android:contentDescription="@string/toolbar_menu"
+        android:background="?attr/selectableItemBackgroundBorderless" />
+
+    <!-- ИМЯ ФАЙЛА -->
+    <TextView
+        android:id="@+id/txtFileName"
+        android:text="@string/default_filename"
+        android:contentDescription="@string/toolbar_filename"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="0dp">
+        android:layout_gravity="center"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp" />
 
-        <!-- МЕНЮ -->
-        <ImageView
-            android:id="@+id/btnOptions"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:padding="12dp"
-            android:src="@drawable/ic_options"
-            android:clickable="true"
-            android:tooltipText="@string/toolbar_menu"
-            android:contentDescription="@string/toolbar_menu"
-            android:background="?attr/selectableItemBackgroundBorderless" />
-
-        <!-- ИМЯ ФАЙЛА -->
-        <TextView
-            android:id="@+id/txtFileName"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:ellipsize="end"
-            android:gravity="center_vertical"
-            android:maxLines="1"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:text="@string/default_filename"
-            android:tooltipText="@string/toolbar_filename"
-            android:contentDescription="@string/toolbar_filename"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
-
-    </LinearLayout>
+    <!-- БЫСТРОЕ СОХРАНЕНИЕ -->
+    <ImageView
+        android:id="@+id/btnQuickSave"
+        android:contentDescription="@string/toolbar_quick_save"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="end|center_vertical"
+        android:padding="12dp"
+        android:src="@drawable/ic_save"
+        android:clickable="true"
+        android:background="?attr/selectableItemBackgroundBorderless" />
 
 </androidx.appcompat.widget.Toolbar>

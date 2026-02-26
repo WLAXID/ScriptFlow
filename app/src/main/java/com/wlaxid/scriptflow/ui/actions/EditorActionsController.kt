@@ -72,8 +72,8 @@ class EditorActionsController(
             if (menuOpened) closeMenu() else openMenu()
         }
 
-        fabUndo.setOnClickListener { onUndo(); closeMenu() }
-        fabRedo.setOnClickListener { onRedo(); closeMenu() }
+        fabUndo.setOnClickListener { onUndo(); }
+        fabRedo.setOnClickListener { onRedo(); }
         fabSearch.setOnClickListener { onSearch(); closeMenu() }
         fabScreenshot.setOnClickListener { onScreenshot(); closeMenu() }
         fabEyedropper.setOnClickListener { onEyedropper(); closeMenu() }
@@ -105,10 +105,6 @@ class EditorActionsController(
                 fabExecute.backgroundTintList = ColorStateList.valueOf("#95A5A6".toColorInt())
             }
         }
-    }
-
-    fun collapseMenu() {
-        if (menuOpened) closeMenu()
     }
 
     private fun openMenu() {

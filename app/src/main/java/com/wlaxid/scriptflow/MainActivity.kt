@@ -20,7 +20,7 @@ import com.wlaxid.scriptflow.runtime.RunSessionController
 
 class MainActivity : AppCompatActivity() {
 
-    private val editorState = EditorState()
+    private lateinit var editorState: EditorState
     private lateinit var editorController: EditorController
     private lateinit var fileController: FileController
     private lateinit var codeView: CodeView
@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        editorState = EditorState(getString(R.string.default_filename))
         bindViews()
         setupConsole()
         setupRunSession()
@@ -193,6 +194,8 @@ for i in range(3):
 """
         codeView.post {
             editorController.setText(sample)
+            editorState.onInitialTextSet()
+            editorActionsController.setTitle(editorState.displayName())
         }
     }
 
