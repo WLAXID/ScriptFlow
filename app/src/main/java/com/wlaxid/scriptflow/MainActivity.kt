@@ -17,6 +17,15 @@ import com.wlaxid.scriptflow.ui.actions.EditorActionsController
 import com.wlaxid.scriptflow.ui.console.ConsoleController
 import com.wlaxid.scriptflow.ui.console.ConsoleOutputPresenter
 import com.wlaxid.scriptflow.runtime.RunSessionController
+import com.wlaxid.scriptflow.ui.overlay.SelectionOverlayController
+import android.content.Intent
+import android.media.projection.MediaProjectionManager
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import android.provider.Settings
+import com.wlaxid.scriptflow.ui.overlay.OverlayToast
+import com.wlaxid.scriptflow.ui.overlay.ScreenCaptureService
+import androidx.core.net.toUri
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,6 +43,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var consoleRoot: View
     private lateinit var consolePresenter: ConsoleOutputPresenter
     private lateinit var runSessionController: RunSessionController
+    private lateinit var selectionOverlayController: SelectionOverlayController
+    private lateinit var overlayToast: OverlayToast
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +59,8 @@ class MainActivity : AppCompatActivity() {
         setupEditor()
         setupListeners()
         setupFileController()
+        overlayToast = OverlayToast(this)
+        setupOverlay()
         setupEditorActions()
         editorActionsController.setTitle(editorState.displayName())
     }
@@ -62,6 +76,51 @@ class MainActivity : AppCompatActivity() {
         btnQuickSave = findViewById(R.id.btnQuickSave)
     }
 
+
+    private val screenCaptureLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                val intent = Intent(this, ScreenCaptureService::class.java).apply {
+                    putExtra("code", result.resultCode)
+                    putExtra("data", result.data)
+                }
+                ContextCompat.startForegroundService(this, intent)
+                ScreenCaptureService.onProjectionReady = { projection ->
+                    selectionOverlayController.setMediaProjection(projection)
+                    selectionOverlayController.show()
+                }
+            }
+        }
+
+    private val overlayPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (Settings.canDrawOverlays(this)) {
+                startScreenCapture()
+            } else {
+                overlayToast.show("Для использования функции создания скриншотов требуется разрешение", 2000L)
+            }
+        }
+
+    private fun startScreenCapture() {
+        if (!Settings.canDrawOverlays(this)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                "package:${packageName}".toUri()
+            )
+            overlayPermissionLauncher.launch(intent)
+            return
+        }
+
+        ScreenCaptureService.mediaProjection?.let {
+            selectionOverlayController.setMediaProjection(it)
+            selectionOverlayController.show()
+            return
+        }
+
+        val manager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val intent = manager.createScreenCaptureIntent()
+        screenCaptureLauncher.launch(intent)
+    }
     private fun setupConsole() {
         consoleController = ConsoleController(consoleRoot)
         consolePresenter = ConsoleOutputPresenter(consoleController)
@@ -278,6 +337,9 @@ for i in range(3):
             override fun onDrawerStateChanged(newState: Int) {}
         })
     }
+    private fun setupOverlay() {
+        selectionOverlayController = SelectionOverlayController(this)
+    }
 
     private fun setupRunSession() {
         runSessionController = RunSessionController(
@@ -304,7 +366,7 @@ for i in range(3):
             onUndo = { },
             onRedo = { },
             onSearch = { },
-            onScreenshot = { },
+            onScreenshot = { startScreenCapture() },
             onEyedropper = { },
             onExecute = {
                 when (runSessionController.currentState()) {
@@ -318,9 +380,12 @@ for i in range(3):
     override fun onDestroy() {
         try {
             runSessionController.destroy()
-        } catch (_: Exception) {
-            // ничего - если runController ещё не инициализирован или уже разрушен
-        }
+        } catch (_: Exception) {}
+
+        try {
+            selectionOverlayController.stopCaptureSession()
+        } catch (_: Exception) {}
+
         super.onDestroy()
     }
 }

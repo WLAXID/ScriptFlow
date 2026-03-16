@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/actionBarContainer"
+    android:layout_width="wrap_content"
+    android:layout_height="52dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- ВЫЕМКА -->
+    <View
+        android:id="@+id/notchBackground"
+        android:layout_width="130dp"
+        android:layout_height="13dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:background="@drawable/bg_overlay_notch" />
+
+    <!-- РАЗРЕШЕНИЕ -->
+    <TextView
+        android:id="@+id/resolutionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:gravity="center"
+        android:text="228 × 228"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp" />
+
+    <!-- ТУЛБАР -->
+    <LinearLayout
+        android:id="@+id/actionBar"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_gravity="top|center_horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:background="@drawable/bg_overlay_toolbar"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/btnToggle"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_overlay_opened" />
+
+        <View
+            android:id="@+id/divider1"
+            android:layout_width="1dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="#33FFFFFF" />
+
+        <ImageView
+            android:id="@+id/btnSaveImage"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_save" />
+
+        <View
+            android:id="@+id/divider2"
+            android:layout_width="1dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="#33FFFFFF" />
+
+        <ImageView
+            android:id="@+id/btnCancel"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_close" />
+    </LinearLayout>
+
+</FrameLayout>

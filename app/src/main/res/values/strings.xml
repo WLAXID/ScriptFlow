@@ -41,4 +41,6 @@
     <!-- ===== CONSOLE ===== -->
     <string name="console_title">Console</string>
 
+    <string name="resolution_format">%1$d × %2$d</string>
+
 </resources>
